@@ -2,9 +2,18 @@
 #/**/*
 #/*/*  # ignore all file (in all directory/subdirectories)
 #!*.R* # but those ends with ".R"
-.DS_Store
-/**/*.pdf
-/**/*.png
+*.*
+!.gitattributes
+!.gitignore
+!readme.md
+!.gitkeep
+!*.R
+!*.txt
+!*/
+
+#.DS_Store
+#/**/*.pdf
+#/**/*.png
 #!/lab?/*.R
 
 # History files

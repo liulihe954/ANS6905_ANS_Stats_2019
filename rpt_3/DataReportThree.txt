@@ -1,0 +1,17 @@
+STEERS PERIODS FatLevel FatSaturation DMI
+S1 P1 2 unsaturated 10
+S1 P2 4 saturated 10.2
+S1 P3 4 unsaturated 8.5
+S1 P4 2 saturated 11.1
+S2 P1 4 unsaturated 9
+S2 P2 2 saturated 11.3
+S2 P3 2 unsaturated 11.2
+S2 P4 4 saturated 11.4
+S3 P1 4 saturated 11.1
+S3 P2 4 unsaturated 9.5
+S3 P3 2 saturated 12.8
+S3 P4 2 unsaturated 11.7
+S4 P1 2 saturated 10.8
+S4 P2 2 unsaturated 11.4
+S4 P3 4 saturated 11
+S4 P4 4 unsaturated 9.9

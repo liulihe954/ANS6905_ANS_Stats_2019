@@ -5,7 +5,7 @@
 *.*
 !.gitattributes
 !.gitignore
-!readme.md
+!README.md
 !.gitkeep
 !*.R
 !*.txt

@@ -1,3 +1,4 @@
+options(warn = -1)
 install.packages("easypackasges",quite = T);library(easypackages)
 Check_pkg = function(mypkg){
   miss = logical()

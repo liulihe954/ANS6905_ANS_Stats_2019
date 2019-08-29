@@ -3,7 +3,7 @@
 ##===============================================================================##
 rm(list=ls()) # Will "clear up" your directory. Prevents conflicts. But NOT recommended.
 # load some supports (nvm, I composed beforehand for better demo, no need to check...)
-source("Functions_Sources.R")
+source("Functions_Sources_Just_Ignore.R")
 ### Set up working directories(wd)
 # setwd("where your data are & where your script will exist")
 setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab1")
@@ -11,15 +11,12 @@ getwd()
 # files
 list.files()
 file.exists(c("BodyWeight.csv",
-              "DataItalianRestaurantsNewYork.txt",
-              "DataFeedAdditives.txt",
-              "DataRumination.txt",
+              "DataItalianRestaurantsNewYork.txt"
               ))
 # Check the package requirments - run before analysis, because R relys on these pkgs.
 mypkg = c("easypackages","tidyverse","faraway","ggplot2","car")
 Check_pkg(mypkg)
 libraries(mypkg)
-
 
 ##===============================================================================##
 ##                         1.Simple Linear Regression                            ## 
@@ -48,7 +45,6 @@ sumary(BW_simple_lm)
 # succinct version 2
 coef(BW_simple_lm)
 
-
 # Get back to graphical - because we believe in what we see
 BodyWeightData_sub <- add_column(BodyWeightData_sub, my_prediction = predict(BW_simple_lm)) # dataframe massage
 plot_simple_lm + geom_line(color='red',data = BodyWeightData_sub,aes(x = DMI, y= my_prediction)) # remember what you were expecting
@@ -66,7 +62,6 @@ t(x) %*% y
 
 # Least Squares Estimator (slides)
 xtxi = solve(t(x) %*% x) # 
-
 
 # all the estimates!! # Parameter Estimation: β1 / β0
 Beta_hat = xtxi %*% t(x) %*% y 
@@ -104,14 +99,12 @@ F0 = ((SS_reg)/(2-1))/MSE
 F0
 summary(BW_simple_lm)
 
-
 # Coefficient of Determination (R^2)
 R2 = SS_reg/(SS_reg + SS_res)
 R2
 R2_adj= 1-((SS_res/(48-2))/((SS_reg + SS_res)/(48-1)))
 R2_adj
 summary(BW_simple_lm)
-
 
 ##===============================================================================##
 ##                         2.multiple Linear Regression P1                       ## 
@@ -193,7 +186,6 @@ sumary(ItaRes_multi_lm)
 Beta_hat_Ita[2,1]+ c(-1,1)*1.974535*se_beta1_hat_food # By hand, but have to get critical value 1.974535 prior to calculations
 Confint(ItaRes_multi_lm,level=0.95) # Or simply try to use the function
 
-
 # Hypothesis Testing 2: {F test} for significance of regression
 # Analysis of variance
 # SS_T = SS_reg + SS_res
@@ -203,7 +195,6 @@ F0_ItaRes = (SS_reg_Ita/(4-1))/MSE_Ita
 F0_ItaRes
 summary(ItaRes_multi_lm)
 
-
 # Coefficient of Determination (R^2)
 R2_Ita = SS_reg_Ita/(SS_reg_Ita + SS_res_Ita)
 R2_Ita
@@ -211,14 +202,10 @@ R2_adj_Ita= 1-((SS_res_Ita/(168-4))/((SS_reg_Ita + SS_res_Ita)/(168-1)))
 R2_adj_Ita
 summary(ItaRes_multi_lm)
 
-
 # get well-calculated variances using anova()
 anova(BW_simple_lm)
 anova(ItaRes_multi_lm)
-
-
-
-
+ 
 ##===============================================================================##
 ##                         3.multiple Linear Regression P2                       ## 
 ##===============================================================================##
@@ -253,7 +240,6 @@ sumary(BW_categ_lm_nested)
 # succinct version 2
 coef(BW_categ_lm_nested)
 
-
 # Partial F test - for individual predictor
 SS_reg_diff = sum((predict(BW_categ_lm_full) - mean(BodyWeightData$BW))^2) - sum((predict(BW_categ_lm_nested) - mean(BodyWeightData$BW))^2)
 SS_res_full = sum((BodyWeightData$BW - predict(BW_categ_lm_full))^2)
@@ -278,7 +264,6 @@ summary(BW_categ_lm_new_ref)
 Anova(BW_categ_lm_full, type=3)
 anova(BW_categ_lm_full)
 
-
 #### Summary ####
 # Simple Linear Regression
 # from the model - equation
@@ -300,5 +285,4 @@ anova(BW_categ_lm_full)
 # Regression models using categorical variables --- qualitative/categorical variableswith multiple levels
 # partial F test (comparision of the t test)
 # Understanding regression sum of squares - Type 3 Anova
-
 

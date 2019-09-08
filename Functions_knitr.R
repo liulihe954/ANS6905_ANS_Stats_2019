@@ -1,4 +1,5 @@
-options(warn = -1)
+# ---- check_package ----
+options(warn = -1,repos="https://cran.rstudio.com")
 install.packages("easypackasges",quite = T);library(easypackages)
 Check_pkg = function(mypkg){
   miss = logical()
@@ -11,9 +12,9 @@ Check_pkg = function(mypkg){
     message("Now checking package requirements...\nOops! You are missing ",length(miss_pkg)," package(s), and they are: ",miss_pkg)
     for (j in seq_along(miss_pkg)){
       message("Now installing missing package number",j, " -", miss_pkg[j])
-      install.packages(miss_pkg[j],quiet = T,repos = "http://cran.us.r-project.org")
-      library()
+      install.packages(miss_pkg[j],repos = "https://cran.rstudio.com", quiet = T)
     }
   } else {message("Packages requirements checked! You are all set!")}
 }
-
+Check_pkg(mypkg)
+libraries(mypkg)

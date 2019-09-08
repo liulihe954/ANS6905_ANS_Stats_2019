@@ -1,7 +1,7 @@
 ##===============================================================================##
 ##                            0.Before the War                                   ## 
 ##===============================================================================##
-rm(list=ls()) # Will "clear up" your directory. Prevents conflicts. But NOT recommended.
+rm(list=ls()) # Will "clear up" your environment. Prevents conflicts. But NOT recommended.
 # load some supports (nvm, I composed beforehand for better demo, no need to check...)
 source("Functions_Sources_Just_Ignore.R")
 ### Set up working directories(wd)
@@ -31,7 +31,7 @@ BodyWeightData_sub <- subset(BodyWeightData,select = c("DMI","BW")) # Just for d
 str(BodyWeightData_sub)
 dim(BodyWeightData_sub) # NO.row goes first
 head(BodyWeightData_sub,5) # check/show the first 5 (put anything you like) lines
-
+message("s\nhah")
 # get to know your dataset in a graphical way (very ituitive)
 plot_simple_lm = ggplot(data = BodyWeightData_sub,aes(x = BW , y = DMI)) + geom_point(color='blue')
 plot_simple_lm
@@ -252,7 +252,14 @@ SS_reg_diff = sum((predict(BW_categ_lm_full) - mean(BodyWeightData$DMI))^2) - su
 SS_res_full = sum((BodyWeightData$DMI - predict(BW_categ_lm_full))^2)
 F0_p = (SS_reg_diff/(2-1))/(SS_res_full/(48 - 5))
 sqrt(F0_p)
-summary(BW_categ_lm_full)
+# OR using anova funciton: put two models into one comparison-function anova()
+anova(BW_categ_lm_full,BW_categ_lm_nested)
+#
+summary(BW_categ_lm_full)$coefficients # Get model coefficients
+abs(summary(BW_categ_lm_full)$coefficients[3,3])# locate the t value of DIetLC
+sqrt(anova(BW_categ_lm_full,BW_categ_lm_nested)$'F') # check the square root of the F value of the partial F test, and it's the same as t value
+
+
 
 # check analysis of variance
 anova(BW_categ_lm_full)
@@ -266,6 +273,7 @@ BW_categ_lm_new_ref <- lm(DMI ~ BW  + Diet + Trt, # regression formula (R style 
                           data= BodyWeightData_new_ref) # speficy your dataset; R will search/match the variable names
 summary(BW_categ_lm_new_ref)
 
+
 # Since we are familiar with the theory behind
 # here i just demostrate how to get marginal sum of squares 
 Anova(BW_categ_lm_full, type=3)
@@ -273,5 +281,6 @@ anova(BW_categ_lm_full)
 
 Anova(ItaRes_multi_lm, type=3)
 anova(ItaRes_multi_lm)
+
 
 # Take home game

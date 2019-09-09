@@ -321,9 +321,9 @@ rownames(summary(BW_categ_lm_new_ref)$coefficients)
 
 Since we are familiar with the theory behind. Here I just demostrate how to get marginal sum of squares.
 ```{r}
-# marginal sum of squares
+# marginal sum of squares vs sequential sum of squares
 Anova(BW_categ_lm_full, type=3);anova(BW_categ_lm_full)
-# marginal sum of squares
+# marginal sum of squares vs sequential sum of squares
 Anova(ItaRes_multi_lm, type=3);anova(ItaRes_multi_lm)
 ```
 

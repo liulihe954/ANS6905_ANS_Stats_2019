@@ -2,7 +2,7 @@
 title: "Lab1_Report"
 output: html_document
 ---
-# **ANS6905 Lab1 Simple and Multiple Linear regression**  
+# **ANS6905_Lab1 Simple and Multiple Linear Regression**  
 
 ```{r setup, include=FALSE, echo=FALSE,cache=FALSE}
 knitr::read_chunk("Functions_knitr.R")
@@ -22,7 +22,7 @@ BodyWeightData_sub <- subset(BodyWeightData,select = c("DMI","BW"))
 NOrow = dim(BodyWeightData_sub)[1];NOcol = dim(BodyWeightData_sub)[2]; # NO.row goes
 ```
 
-## **Simple Linear regression**  
+## **1.Simple Linear regression**  
 
 Now we read in our dataset and check the structure.  
 ```{r}
@@ -31,7 +31,7 @@ dim(BodyWeightData_sub) # NO.row goes first
 head(BodyWeightData_sub,5) # check the first 5 lines
 tail(BodyWeightData_sub,5)# check the bottom 5 lines
 ```
-We can we get? First, We have two continuous variabales, DMI and BW, we have `r NOrow` observations. we can also run dim() function to briefly check the dimensions, the first number `r NOrow` is the number of rows (animals, normally) and the second number `r NOcol` is the number of columns (traits, normally). Also, run head() or tail() to check the top/bottom n (as you like) lines in the dataset.  
+We can we get here? First, We have two continuous variabales, DMI and BW, and we have `r NOrow` observations. we can also run dim() function to briefly check the dimensions, the first number `r NOrow` is the number of rows (animals, normally) and the second number `r NOcol` is the number of columns (traits, normally). Also, run head() or tail() to check the top/bottom n (as you like) lines in the dataset.  
 
 Now we plot the data to have a grapical impression.
 ```{r, fig.align="center"}
@@ -46,6 +46,7 @@ BW_simple_lm <- lm(DMI ~ BW, # regression formula in R style syntax
                    data= BodyWeightData_sub) 
 summary(BW_simple_lm)
 ```
+
 Also we have some succinct summary styles.
 ```{r}
 # version 1
@@ -59,32 +60,32 @@ BodyWeightData_sub <- add_column(BodyWeightData_sub, my_prediction = predict(BW_
 plot_simple_lm + geom_line(color='red',data = BodyWeightData_sub,aes(x = BW, y= my_prediction))
 ```
 
-## **Simple Linear regression. matrix calculations**  
+## **2. Matrix Calculations (Simple Linear regression)**  
 
-We will be checking the matrix calculations behind the model, and that's how it functions. We go again, we can put the models in another form --- matrix format, seems not ituiative, but effective. 
+We will be checking the matrix calculations behind the model, and that's how it functions.   
+We go again, we can put the models in another form --- matrix format, seems not ituiative, but effective. 
 
-```{r}
+```{r,include = T}
 x = model.matrix(BW_simple_lm) # Get your model Design Matrix
 y = BodyWeightData_sub$DMI # Vector of Responses
 # To get x'x
 t(x)%*%x 
 # To get (x'x)^(-1)
 xtxi = solve(t(x)%*%x)
-xtxi
 # To get x'y 
 t(x)%*% y
 ```
 
+Least Squares Estimator: β1 / β0
 ```{r}
-# Least Squares Estimator: β1 / β0
 Beta_hat = xtxi%*%t(x)%*%y 
 coef(BW_simple_lm) # These come from the functions. 
 Beta_hat # These come from the matrix calculations. 
 round(Beta_hat,3) == round(coef(BW_simple_lm),3)# The results would be the SAME!
 ```
 
+Estimation of Residual Variance 
 ```{r}
-# Estimation of Residual Variance  
 y_hat = BodyWeightData_sub$my_prediction
 SS_res = sum((y - y_hat)^2)
 MSE = SS_res/(NOrow - 2)# an unbiased estimator of σ2
@@ -94,14 +95,14 @@ sigma_compare  == round(sqrt(MSE),3) # Shoule be the same SAME value.
 ```
 
 ```{r}
-# Variance-Covariance Matrix β^hat
+# Variance-Covariance Matrix --- β^hat
 var_cov = xtxi * MSE
 sqrt(diag(var_cov)) # SEs of estimates (by hand)
 parameter_SE = summary(BW_simple_lm)$coefficients[,2] # SE of estimates (from lm())
 round(sqrt(diag(var_cov)),3) == round(parameter_SE,3)
 ```
 
-Hypothesis Testing 1: **t-test**
+Hypothesis Testing 1: **t-test**  
 Testing significance of regression --- Ho:β1 = 0; H1: β1 != 0  
 Note that here can assume all the assumptions stand!
 ```{r}
@@ -125,7 +126,8 @@ F0
 summary(BW_simple_lm)
 ```
 
-Coefficient of Determination (R^2), measuring the goodness of fit, it is the proportion of the variance in the dependent variable that is predictable from the independent variable(s).
+Coefficient of Determination (R^2), measuring the goodness of fit.  
+It is the proportion of the variance in the dependent variable that is predictable from the independent variable(s).
 ```{r}
 R2 = SS_reg/(SS_reg + SS_res)
 round(R2,3) == round(summary(BW_simple_lm)$`r.squared`,3)
@@ -135,7 +137,7 @@ round(R2_adj,3) == round(summary(BW_simple_lm)$`adj.r.squared`,3)
 anova(BW_simple_lm)
 ```
 
-##  **multiple Linear Regression part1**  
+##  **3.Multiple Linear Regression - part1**  
 
 ```{r,echo=F,include=F,}
 setwd("./lab1")
@@ -157,7 +159,7 @@ We can plot each variable against each other, try to figure out the relationship
 plot(ItaRestaurants)
 ```
 
-Now we fit a linear model
+Now we fit a linear model.  
 ```{r}
 #recall our formula (Y = ß0 + ß1*x1, ß2*x2, ß3*x3 + ε)
 ItaRes_multi_lm <- lm(Price ~ Food + Decor + Service, 
@@ -174,8 +176,8 @@ geom_density_2d(binwidth = 0.001)
 ItaRes_coutour
 ```
 
-let check what's happening behind.  
-*I will just show the codes, because the rationales are EXACTLY the same as those in simple lm* 
+Let check what's happening behind.  
+*I will just show the codes, because the rationales are EXACTLY the same as those in simple lm().* 
 ```{r, echo=F, include=T, eval=T}
 x_Ita = model.matrix(ItaRes_multi_lm) # Get your model Design Matrix
 y_Ita = ItaRestaurants$Price # Vector of Responses
@@ -225,7 +227,7 @@ sumary(ItaRes_multi_lm)
 ```
 
 Confidence Intervals (CIs)  
-1. By hand
+1. By hand  
 2. Use function
 ```{r}
 #Get critical value 1.974535 prior to calculations, at the signicical level of 0.05
@@ -254,9 +256,10 @@ round(R2_adj_Ita,3) == round(summary(ItaRes_multi_lm)$`adj.r.squared`,3)
 anova(ItaRes_multi_lm)
 ```
 
-##  **multiple Linear Regression part2**  
+##  **4. Multiple Linear Regression - part2**  
 Regression models using qualitative/categorical variables.(dummy/indicator/binary variable)  
-**Continue with our Cow BW Case**. Now we have more variables, including categorical variables.
+**Continue with our Cow BW Case**  
+Now we have more variables, including categorical variables.
 ```{r, echo=F, include=T}
 #load raw data for more variables
 setwd("./lab1")
@@ -269,8 +272,9 @@ str(BodyWeightData)
 summary(BodyWeightData)
 ```
 Now we have dummy variables:  
-Diet --- HC & LC (two levels)  
-Trt --- 0/0.5/1 (three levels)  
+**Diet** --- HC & LC (two levels)  
+**Trt**  --- 0/0.5/1 (three levels) 
+
 ```{r}
 #recall our formula (Y = ß0 + ß1 * x1 + ß2 * x2 + ß3 * x3  + ε)
 BW_categ_lm_full <- lm(DMI ~ BW + Diet + Trt,

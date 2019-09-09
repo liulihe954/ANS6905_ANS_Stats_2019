@@ -1,0 +1,333 @@
+---
+title: "Lab1_Report"
+output: html_document
+---
+# **ANS6905 Lab1 Simple and Multiple Linear regression**  
+
+```{r setup, include=FALSE, echo=FALSE,cache=FALSE}
+knitr::read_chunk("Functions_knitr.R")
+mypkg = c("easypackages","tidyverse","faraway","ggplot2","car")
+```
+```{r check_package,include=FALSE, echo=FALSE, warning=F}
+```
+
+```{r, echo=F, include=F}
+setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab1")
+# load raw data for analysis
+BodyWeightData <- read.csv("BodyWeight.csv",sep = ",",header=T,as.is=F)
+str(BodyWeightData)
+summary(BodyWeightData)
+# subsetting your data IF necessary
+BodyWeightData_sub <- subset(BodyWeightData,select = c("DMI","BW"))
+NOrow = dim(BodyWeightData_sub)[1];NOcol = dim(BodyWeightData_sub)[2]; # NO.row goes
+```
+
+## **Simple Linear regression**  
+
+Now we read in our dataset and check the structure.  
+```{r}
+str(BodyWeightData_sub)
+dim(BodyWeightData_sub) # NO.row goes first
+head(BodyWeightData_sub,5) # check the first 5 lines
+tail(BodyWeightData_sub,5)# check the bottom 5 lines
+```
+We can we get? First, We have two continuous variabales, DMI and BW, we have `r NOrow` observations. we can also run dim() function to briefly check the dimensions, the first number `r NOrow` is the number of rows (animals, normally) and the second number `r NOcol` is the number of columns (traits, normally). Also, run head() or tail() to check the top/bottom n (as you like) lines in the dataset.  
+
+Now we plot the data to have a grapical impression.
+```{r, fig.align="center"}
+plot_simple_lm = ggplot(data = BodyWeightData_sub,aes(x = BW , y = DMI)) + geom_point(color='blue')
+plot_simple_lm
+```
+
+Time to fit a simple linear regression model.
+```{r}
+#recall our formula (Y = ß0 + ß1 * x + ε)
+BW_simple_lm <- lm(DMI ~ BW, # regression formula in R style syntax
+                   data= BodyWeightData_sub) 
+summary(BW_simple_lm)
+```
+Also we have some succinct summary styles.
+```{r}
+# version 1
+sumary(BW_simple_lm)
+# version 2
+coef(BW_simple_lm)
+```
+Now we integrate the predicted value and draw the line again
+```{r, fig.align="center"}
+BodyWeightData_sub <- add_column(BodyWeightData_sub, my_prediction = predict(BW_simple_lm))
+plot_simple_lm + geom_line(color='red',data = BodyWeightData_sub,aes(x = BW, y= my_prediction))
+```
+
+## **Simple Linear regression. matrix calculations**  
+
+We will be checking the matrix calculations behind the model, and that's how it functions. We go again, we can put the models in another form --- matrix format, seems not ituiative, but effective. 
+
+```{r}
+x = model.matrix(BW_simple_lm) # Get your model Design Matrix
+y = BodyWeightData_sub$DMI # Vector of Responses
+# To get x'x
+t(x)%*%x 
+# To get (x'x)^(-1)
+xtxi = solve(t(x)%*%x)
+xtxi
+# To get x'y 
+t(x)%*% y
+```
+
+```{r}
+# Least Squares Estimator: β1 / β0
+Beta_hat = xtxi%*%t(x)%*%y 
+coef(BW_simple_lm) # These come from the functions. 
+Beta_hat # These come from the matrix calculations. 
+round(Beta_hat,3) == round(coef(BW_simple_lm),3)# The results would be the SAME!
+```
+
+```{r}
+# Estimation of Residual Variance  
+y_hat = BodyWeightData_sub$my_prediction
+SS_res = sum((y - y_hat)^2)
+MSE = SS_res/(NOrow - 2)# an unbiased estimator of σ2
+sqrt(MSE) # σ
+sigma_compare = round(summary(BW_simple_lm,)$sigma,3)
+sigma_compare  == round(sqrt(MSE),3) # Shoule be the same SAME value.
+```
+
+```{r}
+# Variance-Covariance Matrix β^hat
+var_cov = xtxi * MSE
+sqrt(diag(var_cov)) # SEs of estimates (by hand)
+parameter_SE = summary(BW_simple_lm)$coefficients[,2] # SE of estimates (from lm())
+round(sqrt(diag(var_cov)),3) == round(parameter_SE,3)
+```
+
+Hypothesis Testing 1: **t-test**
+Testing significance of regression --- Ho:β1 = 0; H1: β1 != 0  
+Note that here can assume all the assumptions stand!
+```{r}
+## t-test
+se_beta1_hat = sqrt(diag(var_cov))
+t0 = Beta_hat[,1]/se_beta1_hat
+simple_lm_coef = summary(BW_simple_lm)$coefficients
+simple_lm_coef[,3] #locate t value, it's in the third column
+t0 # compare with t0 we got from the matrix
+```
+
+Hypothesis Testing 2: **F-test**
+Testing significance of regression --- Ho:β1 = 0; H1: β1 != 0  
+Analysis of variance (SS_T = SS_reg + SS_res)  
+Note that here can assume all the assumptions stand!  
+```{r}
+SS_reg = sum((predict(BW_simple_lm)-mean(y))^2)
+SS_res = sum((y - y_hat)^2)
+F0 = ((SS_reg)/(2-1))/MSE
+F0
+summary(BW_simple_lm)
+```
+
+Coefficient of Determination (R^2), measuring the goodness of fit, it is the proportion of the variance in the dependent variable that is predictable from the independent variable(s).
+```{r}
+R2 = SS_reg/(SS_reg + SS_res)
+round(R2,3) == round(summary(BW_simple_lm)$`r.squared`,3)
+R2_adj= 1 -((SS_res/(NOrow - 2))/((SS_reg + SS_res)/(NOrow - 1)))
+round(R2_adj,3) == round(summary(BW_simple_lm)$`adj.r.squared`,3)
+# Check the anova table and you will get the same value/conclusions
+anova(BW_simple_lm)
+```
+
+##  **multiple Linear Regression part1**  
+
+```{r,echo=F,include=F,}
+setwd("./lab1")
+ItaRestaurants = read.csv("DataItalianRestaurantsNewYork.txt",sep = "",header=T,as.is=F)
+NOrow_ItaRes = dim(ItaRestaurants)[1]
+```
+
+We will be using a new dataset - Italian Restaurant.  
+We can check the raw dataset by runing the simple functions mentioned above.
+```{r}
+str(ItaRestaurants)
+summary(ItaRestaurants) # if they are continuous we can run summary() to better know the data
+dim(ItaRestaurants)
+head(ItaRestaurants) # check/show some lines, default value is 6 (lines to view)
+```
+
+We can plot each variable against each other, try to figure out the relationships between them.
+```{r}
+plot(ItaRestaurants)
+```
+
+Now we fit a linear model
+```{r}
+#recall our formula (Y = ß0 + ß1*x1, ß2*x2, ß3*x3 + ε)
+ItaRes_multi_lm <- lm(Price ~ Food + Decor + Service, 
+                      data = ItaRestaurants)
+summary(ItaRes_multi_lm)
+# succinct version 1 --- sumary(ItaRes_multi_lm)
+# succinct version 2 --- coef(ItaRes_multi_lm)
+```
+
+Contour plot: For better illustration, we just drop one of the predictors - service
+```{r, fig.align="center"}
+ItaRes_coutour = ggplot(ItaRes_multi_lm, aes(Food, Decor, z = Price)) +
+geom_density_2d(binwidth = 0.001)
+ItaRes_coutour
+```
+
+let check what's happening behind.  
+*I will just show the codes, because the rationales are EXACTLY the same as those in simple lm* 
+```{r, echo=F, include=T, eval=T}
+x_Ita = model.matrix(ItaRes_multi_lm) # Get your model Design Matrix
+y_Ita = ItaRestaurants$Price # Vector of Responses
+# To get x'x
+t(x_Ita) %*% x_Ita 
+# To get (x'x)^(-1)
+solve(t(x_Ita) %*% x_Ita ) 
+# To get x'y 
+t(x_Ita) %*% y_Ita
+# Least Squares Estimator 
+xtxi_Ita = solve(t(x_Ita)%*%x_Ita) # 
+xtxi_Ita
+# all the estimates!! # Parameter Estimation: β1 / β0
+Beta_hat_Ita = xtxi_Ita %*% t(x_Ita) %*% y_Ita
+Beta_hat_Ita
+coef(ItaRes_multi_lm)
+# Estimation of Residual Variance
+ItaRestaurants <- add_column(ItaRestaurants, my_prediction = predict(ItaRes_multi_lm))
+y_hat_Ita = ItaRestaurants$my_prediction
+SS_res_Ita = sum((y_Ita - y_hat_Ita)^2)
+SS_res_Ita
+MSE_Ita = SS_res_Ita/(NOrow_ItaRes - 4);
+MSE_Ita # an unbiased estimator of σ2
+sqrt(MSE_Ita)
+summary(ItaRes_multi_lm)
+
+# Variance-Covariance Matrix β^hat
+var_cov_Ita = xtxi_Ita * MSE_Ita
+var_cov_Ita
+sqrt(diag(var_cov_Ita))
+summary(ItaRes_multi_lm)
+# Tip: to get the var-cov matrix we can simply use the function vcov() that comes with base R
+identical(round(vcov(ItaRes_multi_lm),3),round(var_cov_Ita,3)) # same matrix
+```
+
+
+Hypothesis Testing : **t-test** for individual regression coefficient  
+Testing significance of regression --- Ho:β1 = 0; Ho:β1 != 0  
+Note that here can assume all the assumptions stand!  
+```{r}
+# For example, we try the predictor “Food”
+se_beta1_hat_food = sqrt(diag(var_cov_Ita))[2]
+se_beta1_hat_food 
+t0_food = Beta_hat_Ita[2,1]/se_beta1_hat_food
+t0_food
+sumary(ItaRes_multi_lm)
+```
+
+Confidence Intervals (CIs)  
+1. By hand
+2. Use function
+```{r}
+#Get critical value 1.974535 prior to calculations, at the signicical level of 0.05
+lower = Beta_hat_Ita + c(-1) * 1.974535 * sqrt(diag(var_cov_Ita))
+upper = Beta_hat_Ita + c(1) * 1.974535 * sqrt(diag(var_cov_Ita))
+cbind(estimates = summary(ItaRes_multi_lm)$coefficients[,1],
+      upper = lower, 
+      lower = upper)
+Confint(ItaRes_multi_lm,level=0.95) # Or simply try to use the function
+# We will surely get the same value.
+```
+
+Hypothesis Testing 2: **F test** for significance of regression  
+Analysis of variance
+```{r}
+SS_reg_Ita = sum((predict(ItaRes_multi_lm)-mean(y_Ita))^2)
+SS_res_Ita = sum((y_Ita - y_hat_Ita)^2)
+F0_ItaRes = (SS_reg_Ita/(4-1))/MSE_Ita
+round(F0_ItaRes,3) == round(summary(ItaRes_multi_lm)$fstatistic[1],3)
+# Coefficient of Determination (R^2)
+R2_Ita = SS_reg_Ita/(SS_reg_Ita + SS_res_Ita)
+round(R2_Ita,3) == round(summary(ItaRes_multi_lm)$`r.squared`,3)
+R2_adj_Ita= 1 -((SS_res_Ita/(NOrow_ItaRes - 4))/((SS_reg_Ita + SS_res_Ita)/(NOrow_ItaRes - 1)))
+round(R2_adj_Ita,3) == round(summary(ItaRes_multi_lm)$`adj.r.squared`,3)
+# anova
+anova(ItaRes_multi_lm)
+```
+
+##  **multiple Linear Regression part2**  
+Regression models using qualitative/categorical variables.(dummy/indicator/binary variable)  
+**Continue with our Cow BW Case**. Now we have more variables, including categorical variables.
+```{r, echo=F, include=T}
+#load raw data for more variables
+setwd("./lab1")
+BodyWeightData <- read.csv("BodyWeight.csv",sep = ",",header=T,as.is=F)
+BodyWeightData <- BodyWeightData %>% mutate_at("Trt", funs(factor(.)))
+```
+
+```{r}
+str(BodyWeightData)
+summary(BodyWeightData)
+```
+Now we have dummy variables:  
+Diet --- HC & LC (two levels)  
+Trt --- 0/0.5/1 (three levels)  
+```{r}
+#recall our formula (Y = ß0 + ß1 * x1 + ß2 * x2 + ß3 * x3  + ε)
+BW_categ_lm_full <- lm(DMI ~ BW + Diet + Trt,
+                   data= BodyWeightData) 
+summary(BW_categ_lm_full)
+# We fit a nested model without Diet (for Partial F test)
+BW_categ_lm_nested <- lm(DMI ~ BW + Trt , 
+                       data= BodyWeightData) 
+```
+
+Hypothesis Testing 1: **Partial F test** for significance of regression  
+Extra-sum-of-squares method for individual predictor  
+
+Two ways:  
+1.Calculate by hand (we love old school)  
+2.anova() function  
+```{r}
+# 1. calculations
+SS_reg_diff = sum((predict(BW_categ_lm_full) - mean(BodyWeightData$DMI))^2) - sum((predict(BW_categ_lm_nested) - mean(BodyWeightData$DMI))^2)
+SS_res_full = sum((BodyWeightData$DMI - predict(BW_categ_lm_full))^2)
+F0_p = (SS_reg_diff/(2-1))/(SS_res_full/(48 - 5))
+# comparing (use anova() funciton: put two models into one comparison-function)
+round(F0_p,3) == round(anova(BW_categ_lm_full,BW_categ_lm_nested)$`F`[2],3)
+
+
+# 2. relation to t-value
+abs(summary(BW_categ_lm_full)$coefficients[3,3])# locate the t value of DIetLC
+sqrt(anova(BW_categ_lm_full,BW_categ_lm_nested)$'F'[2]) 
+
+```
+Check the square root of the F value of the partial F test, it's the same as t value.
+
+
+Here we mention two small topics, get the CIs of each estimate, and reset the refence level/group for the dummy variables
+```{r}
+# 1. Get confidence interval using Confint()
+Confint(BW_categ_lm_full)
+
+# 2. reset reference group
+# now reset the ref
+BodyWeightData_new_ref <- within(BodyWeightData,Diet <-relevel(Diet,ref = "LC"))
+# re-fit a model
+BW_categ_lm_new_ref <- lm(DMI ~ BW  + Diet + Trt, 
+                          data= BodyWeightData_new_ref)
+rownames(summary(BW_categ_lm_full)$coefficients)
+rownames(summary(BW_categ_lm_new_ref)$coefficients)
+```
+
+Since we are familiar with the theory behind. Here I just demostrate how to get marginal sum of squares.
+```{r}
+# marginal sum of squares
+Anova(BW_categ_lm_full, type=3);anova(BW_categ_lm_full)
+# marginal sum of squares
+Anova(ItaRes_multi_lm, type=3);anova(ItaRes_multi_lm)
+```
+
+
+
+
+

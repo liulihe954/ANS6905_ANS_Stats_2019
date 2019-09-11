@@ -71,9 +71,12 @@ H0: Data is normally distributed
 H1: Data is not normally distributed  
 ```{r}
 # Shapiro–Wilk test
-shapiro.test(residuals(lmod_glu))
-# Kolmogorov–Smirnov test
-ks.test(residuals(lmod_glu), "pnorm")
+shapiro.test(residuals(lmod_glu)) 
+# W value, close to 1 if true. If the p value is less than the chosen alpha level, then the null hypothesis is rejected
+
+# Kolmogorov–Smirnov test (standard gaussian (normal) distribution.)
+ks.test(residuals(lmod_glu), "pnorm") # D (distance) value - converege to 0 if true
+# ks.test(residuals(lmod_glu), "pnorm",mean = 1, sd = 2) # could specify mean and sd
 
 ### Notes
 # small samples most often pass normality tests (accept H0) 
@@ -137,6 +140,7 @@ ModGet_CustomizeStudentRes = function(lmod){
 # studres(lmod) # Jackknife
 # rstudent(lmod) #Jackknife
 ```
+
 
 ```{r,warning=F}
 #### (Internally/External) Studentized Residuals

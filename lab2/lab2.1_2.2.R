@@ -37,6 +37,7 @@ max(ketosis.mod$residuals)
 which.max(residuals(ketosis.mod))
 
 dev.off()
+
 # standardized residuals vs predicted value
 plot(fitted(ketosis.mod),rstandard(ketosis.mod),col = "red")
 abline( h = 0,lty = 4)

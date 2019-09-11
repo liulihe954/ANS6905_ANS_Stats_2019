@@ -7,6 +7,7 @@ output: html_document
 # **ANS6905_Lab1 Simple and Multiple Linear Regression**  
 
 ```{r setup, include=FALSE, echo=FALSE,cache=FALSE}
+setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019")
 knitr::read_chunk("Functions_knitr.R")
 mypkg = c("easypackages","tidyverse","faraway","ggplot2","car")
 ```
@@ -142,7 +143,7 @@ anova(BW_simple_lm)
 ##  **3.Multiple Linear Regression - part1**  
 
 ```{r,echo=F,include=F,}
-setwd("./lab1")
+#setwd("./lab1")
 ItaRestaurants = read.csv("DataItalianRestaurantsNewYork.txt",sep = "",header=T,as.is=F)
 NOrow_ItaRes = dim(ItaRestaurants)[1]
 ```

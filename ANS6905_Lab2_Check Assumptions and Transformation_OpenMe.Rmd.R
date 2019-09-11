@@ -1,10 +1,10 @@
 ---
-title: "Lab2_Report"
+  title: "Lab2_Report"
 output: html_document
 ---
-## **ANS6905_Lab2 Checking Model Assumptions & Transfromation**  
-
-```{r setup, include=FALSE, echo=FALSE,cache=FALSE}
+  ## **ANS6905_Lab2 Checking Model Assumptions & Transfromation**  
+  
+  ```{r setup, include=FALSE, echo=FALSE,cache=FALSE}
 setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019");knitr::read_chunk("Functions_knitr.R");mypkg = c("easypackages","tidyverse","faraway","ggplot2","car")
 ```
 ```{r check_package,include=FALSE, echo=FALSE, warning=F}
@@ -26,24 +26,19 @@ NOrow = dim(Glucose_data)[1]
 ### **1.Regression Analysis: Checking Assumptions **  
 
 **1. Linear relationship: y ~ x **  
-**2. Errors: Zero mean**  
-**3. Errors: Constant variance σ2**  
-**4. Errors: uncorrelated**  
-**5. Errors: normality ε ~ Ν(0,σ2)**  
-Estimations and inferences FULLY based on these assumptions.And they need to be **CHECKED**   
-1. Graphical  
+  **2. Errors: Zero mean**  
+  **3. Errors: Constant variance σ2**  
+  **4. Errors: uncorrelated**  
+  **5. Errors: normality ε ~ Ν(0,σ2)**  
+  Estimations and inferences FULLY based on these assumptions.And they need to be **CHECKED**   
+  1. Graphical  
 2. Numerical    
 
 ```{r}
 # First we fit a linear model
 lmod_glu <- lm(BHBA_7_DIM ~ Glucose_7_DIM, 
-                 data = Glucose_data)
+               data = Glucose_data)
 summary(lmod_glu)
-```
-```{r,fig.align='center'}
-plot_simple_lm = ggplot(data = Glucose_data,aes(x = Glucose_7_DIM , y = BHBA_7_DIM)) + geom_point(color='blue')
-Glucose_data_pred <- add_column(Glucose_data, my_prediction = predict(lmod_glu))
-plot_simple_lm + geom_line(color='red',data = Glucose_data_pred ,aes(x = Glucose_7_DIM , y= my_prediction))
 ```
 
 Any departures from the assumptions on the model errors should appear in the residuals.
@@ -51,17 +46,17 @@ Any departures from the assumptions on the model errors should appear in the res
 1.The most important diagnostic plot: ε_hat against y_hat,   
 because we can check  
 **zero mean** & **constant variance** & **relationship y~x** 
-```{r,fig.align='center'}
+  ```{r}
 plot(fitted(lmod_glu),residuals(lmod_glu),col = "blue",ylim = c(-max(abs(residuals(lmod_glu))),max(abs(residuals(lmod_glu)))));abline(h = 0,lty = 4)
 ```
 
 2. Normal probability plot (Q-Q plot)  
 **if the residuals are normally distributed, then the points should form a straight line**
-```{r,fig.align='center'}
+  ```{r}
 qqnorm(residuals(lmod_glu), pch = 1, frame = FALSE);qqline(residuals(lmod_glu), col = "steelblue", lwd = 2)
 ## with confidence band
 library(car)
-qqPlot(residuals(lmod_glu))
+qqPlot(residuals(lmod_glu)) 
 library(ggpubr,quietly = T)
 ggqqplot(residuals(lmod_glu))
 ```
@@ -82,16 +77,16 @@ ks.test(residuals(lmod_glu), "pnorm")
 
 4. Types of residuals  
 **1. Raw Residuals**  
-**2. Standarized Residuals**  
-**3. (internally) Studentized Residuals**  
-**4. (externally) Studentized Residuals / Jackknife residuals**  
-```{r}
+  **2. Standarized Residuals**  
+  **3. (internally) Studentized Residuals**  
+  **4. (externally) Studentized Residuals / Jackknife residuals**  
+  ```{r}
 library(MASS,quietly = T)
 #### Raw Residuals
 # get from the lm()
 raw_res = residuals(lmod_glu)
 # by hand
-raw_res = Glucose_data$BHBA_7_DIM - predict(lmod_glu)
+raw_res = residuals(lmod_glu)
 # of course they are the same
 all.equal(raw_res,(Glucose_data$BHBA_7_DIM - predict(lmod_glu)))
 ```
@@ -145,10 +140,16 @@ Internal_StuRes = StuRes$StudentRes_internal
 External_StuRes = StuRes$StudentRes_external
 ```
 
+```{r}
+plot_simple_lm = ggplot(data = Glucose_data,aes(x = Glucose_7_DIM , y = BHBA_7_DIM)) + geom_point(color='blue')
+Glucose_data_pred <- add_column(Glucose_data, my_prediction = predict(lmod_glu))
+plot_simple_lm + geom_line(color='red',data = Glucose_data_pred ,aes(x = Glucose_7_DIM , y= my_prediction))
+```
+
 **Outlier**: Data point with a large residual  
 **High Leverage**: Data point with a large hat value  
 **Influential**:It has an unusual X-value with an unusual Y-value given its X-value  
-```{r,fig.align='center'}
+```{r}
 # Outlier: large residuals (external studentized residuals)
 #Bonferroni critical value - t_critic1
 t_critic1 = qt(0.05/(2*NOrow),(NOrow -length(lmod_glu$coefficients)-1))
@@ -164,7 +165,7 @@ data.frame(fitted = lmod_glu$fitted.values,
 ```
 
 
-```{r,fig.align='center'}
+```{r}
 # high leverage: data point with a large hat_value
 # set thres and select
 h_critic1 = (2*length(lmod_glu$coefficients))/NOrow
@@ -180,7 +181,7 @@ data.frame(fitted = lmod_glu$fitted.values,
 ```
 
 
-```{r,fig.align='center'}
+```{r}
 # Influential: data point that greatly affects the estimates of the model
 # Cook's Distance
 library(car)
@@ -227,17 +228,17 @@ plot_simple_lm_rm_ck
 ```
 
 Now we try some transformation.
-```{r, fig.align='center'}
+```{r}
 library(MASS)
 lmod_glu <- lm(BHBA_7_DIM ~ Glucose_7_DIM, 
-                 data = Glucose_data)
+               data = Glucose_data)
 # check data before run boxcox
 summary(Glucose_data) # a. NO negative values b. max/min ratio is ratively high
 boxcox(lmod_glu,plotit = T,lambda = seq(-2,2,by =0.2))
 ```
 
 
-```{r,fig.align='center'}
+```{r}
 # lambda = - 0.5
 lmod_glu_bc_trans = lm(1/sqrt(BHBA_7_DIM) ~ Glucose_7_DIM, 
                        data = Glucose_data)
@@ -256,14 +257,6 @@ plot_simple_lm_bc_trans
 # Surely, it is good to know that but this may be too advanced...
 library(ggplot2)
 ggplot(Glucose_data, aes(Glucose_7_DIM,BHBA_7_DIM)) + geom_smooth() + geom_point()
-
-
-##--------------------------------##
-##  Time to play with the codes.  ##
-##--------------------------------##
-# Can you try boxcox and back transfromation, WITHOUT the influential points?
-# Remove the influential points we detected and then try to transform and trans back. 
-# Good luck.
 ```
 
 

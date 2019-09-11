@@ -9,6 +9,7 @@
 !.gitkeep
 !*.R
 !*.Rmd
+!*.html
 !*.txt
 !*/
 

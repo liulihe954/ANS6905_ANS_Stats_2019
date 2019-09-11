@@ -211,6 +211,7 @@ lmod_glu_rm_ck <- Glucose_data %>%
   lm(BHBA_7_DIM ~ Glucose_7_DIM,data =.)
 summary(lmod_glu_rm_ck)
 summary(lmod_glu)
+
 # integrate removal information
 Glucose_data_pred_rm_ck <- add_column(Glucose_data_pred,
                                       Influ = ifelse(rownames(Glucose_data_pred)%in%ck_index,"Yes","No"))
@@ -219,11 +220,11 @@ plot_simple_lm_rm_ck = ggplot(data = Glucose_data_pred_rm_ck,
                               aes(x = Glucose_7_DIM,y = BHBA_7_DIM,color = Influ)) + 
   geom_point()+
   geom_abline(intercept=coef(lmod_glu)[1],
-              slope=coef(lmod_glu)[2],color = "blue") + #model with Influential points
+              slope=coef(lmod_glu)[2],color = "#00BFC4") + #model with Influential points
   geom_abline(intercept=coef(lmod_glu_rm_ck )[1],
-              slope=coef(lmod_glu_rm_ck )[2],color = "red") #model without Influential points
+              slope=coef(lmod_glu_rm_ck )[2],color = "#F8766D") #model without Influential points
 plot_simple_lm_rm_ck
-
+gg_color_hue(5)
 ##--------------------------------##
 ##  Time to play with the codes.  ##
 ##--------------------------------##

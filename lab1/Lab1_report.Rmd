@@ -1,5 +1,7 @@
 ---
 title: "Lab1_Report"
+author: "Lihe Liu"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 # **ANS6905_Lab1 Simple and Multiple Linear Regression**  

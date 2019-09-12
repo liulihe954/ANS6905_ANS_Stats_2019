@@ -20,11 +20,11 @@ libraries(mypkg)
 ##                         1.Checking Assumptions                                ## 
 ##===============================================================================##
 setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab2")
-Glucose_data_raw <- read.csv("???.csv",header = T)
+Glucose_data_raw <- read.csv("lab2.1_BHBA_Glucose.csv",header = T)
 library(tidyverse)
 Glucose_data <- Glucose_data_raw %>% dplyr::select(BHBA_7_DIM,Glucose_7_DIM)
 colnames(Glucose_data)
-NOrow = 
+NOrow = dim(Glucose_data)[1]
 
 ### **1.Regression Analysis: Checking Assumptions **  
 
@@ -39,7 +39,7 @@ NOrow =
 
 # First we fit a linear model
 lmod_glu <- lm(BHBA_7_DIM ~ Glucose_7_DIM, 
-               data = )
+               data = Glucose_data )
 summary(lmod_glu)
 
 ## Any departures from the assumptions on the model errors should appear in the residuals.
@@ -66,7 +66,7 @@ ggqqplot(residuals(lmod_glu))
 # Shapiro–Wilk test
 shapiro.test(residuals(lmod_glu))
 # Kolmogorov–Smirnov test
-ks.test(residuals(lmod_glu), "???")
+ks.test(residuals(lmod_glu), "pnorm")
 
 ### Notes
 # small samples most often pass normality tests (accept H0) 
@@ -82,7 +82,7 @@ library(MASS,quietly = T)
 # get from the lm()
 raw_res = residuals(lmod_glu)
 # by hand
-raw_res = residuals(lmod_glu)
+raw_res = Glucose_data$BHBA_7_DIM - predict(lmod_glu)
 # of course they are the same
 all.equal(raw_res,(Glucose_data$BHBA_7_DIM - predict(lmod_glu)))
 
@@ -92,11 +92,11 @@ y_hat = predict(lmod_glu)
 SS_res = sum((Glucose_data$BHBA_7_DIM - y_hat)^2)
 MSE = SS_res/(NOrow - 2)# an unbiased estimator of σ2
 stan_res = residuals(lmod_glu)/sqrt(MSE)
+#(summary(lmod_glu))$sigma
 # Seems not identical, the thres is near 1.5e-8, very strengent, also function has more massages...
 # recommend use stdres() funcion,
 all.equal(stdres(lmod_glu),stan_res)
 stan_res = stdres(lmod_glu)
-
 
 ## Before we jump to studentized residuals, we have to put together some pieces of code  
 ## Then we have our **self-contained** functions to achieve any calculations.  
@@ -141,7 +141,7 @@ plot_simple_lm + geom_line(color='red',data = Glucose_data_pred ,aes(x = Glucose
 #######
 # Outlier: large residuals (external studentized residuals)
 #Bonferroni critical value - t_critic1
-t_critic1 = qt("what is this"/(2*NOrow),(NOrow -"and what is this"-1))
+t_critic1 = qt(0.05/(2*NOrow),(NOrow -length(lmod_glu$coefficient)-1))
 # find the outliers
 rstudent(lmod_glu)[which((abs(rstudent(lmod_glu)) - abs(t_critic1))>= 0)]
 # let's get grapical!
@@ -152,6 +152,9 @@ data.frame(fitted = lmod_glu$fitted.values,
   geom_hline(yintercept=t_critic1,color='red',linetype="dashed",size=.5)+
   geom_hline(yintercept=-t_critic1,color='red',linetype="dashed",size=.5)
 ######
+
+#lmtest::bptest(lmod_glu) #Breusch-Pagan test
+#car::ncvTest(lm)  # Breusch-Pagan test
 
 ######
 # high leverage: data point with a large hat_value
@@ -227,7 +230,7 @@ lmod_glu <- lm(BHBA_7_DIM ~ Glucose_7_DIM,
                data = Glucose_data)
 # check data before run boxcox
 summary(Glucose_data) # a. NO negative values b. max/min ratio is ratively high
-"what is the name?"(lmod_glu,plotit = T,lambda = seq(-2,2,by =0.2))
+boxcox(lmod_glu,plotit = T,lambda = seq(-2,2,by =0.2))
 
 # lambda = - 0.5
 lmod_glu_bc_trans = lm(1/sqrt(BHBA_7_DIM) ~ Glucose_7_DIM, 
@@ -248,7 +251,6 @@ plot_simple_lm_bc_trans
 library(ggplot2)
 ggplot(Glucose_data, aes(Glucose_7_DIM,BHBA_7_DIM)) + geom_smooth() + geom_point()
 
-
 ##--------------------------------##
 ##  Time to play with the codes.  ##
 ##--------------------------------##
@@ -257,5 +259,5 @@ ggplot(Glucose_data, aes(Glucose_7_DIM,BHBA_7_DIM)) + geom_smooth() + geom_point
 # Good luck.
 
 
-
-
+Sys.getenv("R_LIBS_USER")
+dir.create(Sys.getenv("R_LIBS_USER"), recursive = TRUE)

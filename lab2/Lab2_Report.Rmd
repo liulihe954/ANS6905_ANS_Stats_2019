@@ -10,7 +10,6 @@ setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019");knitr::read_chunk("Func
 ```{r check_package,include=FALSE, echo=FALSE, warning=F}
 ```
 
-
 ```{r, include=FALSE, echo=FALSE, warning=F}
 setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab2");Glucose_data_raw <- read.csv("lab2.1_BHBA_Glucose.csv",header = T)
 ```
@@ -224,7 +223,7 @@ plot_simple_lm_rm_ck = ggplot(data = Glucose_data_pred_rm_ck,
   geom_abline(intercept=coef(lmod_glu_rm_ck )[1],
               slope=coef(lmod_glu_rm_ck )[2],color = "#F8766D") #model without Influential points
 plot_simple_lm_rm_ck
-gg_color_hue(5)
+
 ##--------------------------------##
 ##  Time to play with the codes.  ##
 ##--------------------------------##

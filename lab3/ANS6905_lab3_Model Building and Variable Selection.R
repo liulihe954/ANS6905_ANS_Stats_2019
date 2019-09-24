@@ -3,12 +3,10 @@
 ##===============================================================================##
 ### prepare the packages we need.
 library(car);library(MASS);library(leaps);library(tidyverse);library(faraway);library(locfit)
-
 ## If you are missing something; uncomment the following line and fill in the pck name
 # install.packages()
 ## Remember to set working directory
 # setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab3/")
-
 
 #####
 ### prepare dataset packages we need.
@@ -122,39 +120,5 @@ stepAIC(min_fit , direction = "both", scope = list(upper = full_fit,lower = min_
 
 # Note: variable selection is sensitive to outliers and influential points.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Can you perform unusual data point checking prior to variable selection?
+  

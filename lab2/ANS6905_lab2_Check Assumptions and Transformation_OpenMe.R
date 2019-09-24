@@ -58,7 +58,6 @@ qqPlot(residuals(lmod_glu))
 library(ggpubr,quietly = T)
 ggqqplot(residuals(lmod_glu))
 
-
 ##3. Checking normality using formal statistical tests.  
 ## H0: Data is normally distributed  
 ## H1: Data is not normally distributed  

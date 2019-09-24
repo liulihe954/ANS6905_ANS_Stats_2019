@@ -2,9 +2,11 @@
 ##                            0.Before the War                                   ## 
 ##===============================================================================##
 ### prepare the packages we need.
-library(car);library(MASS);library(leaps);library(tidyverse);library(faraway);library(locfit)
+library(car);library(MASS);library(leaps);
+library(tidyverse);library(faraway);
+library(locfit)
 ## If you are missing something; uncomment the following line and fill in the pck name
-# install.packages()
+# install.packages("locfit")
 ## Remember to set working directory
 # setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab3/")
 
@@ -89,6 +91,7 @@ Gather = cbind(All_Model = all_model,
                Mallows = round(Cp,4))
 Gather = data.frame(Gather)
 
+
 #### using functions
 library(leaps)
 all_model2 <- regsubsets(BW ~ .,nbest = 6,data = Heifer_data) # exhaustively
@@ -110,6 +113,7 @@ names(all_model2_summary)
 library(MASS)
 full_fit <- lm(BW ~ AgeD + WitHt + HipHt + Girth, data = heifer_data)
 min_fit <-  lm(BW ~ 1, data = Heifer_data)
+# min_fit <-  lm(BW ~ AgeD, data = Heifer_data) # forcely add AgeD
 
 # Backward selection 
 stepAIC(full_fit,direction = "backward",scope = list(upper = full_fit,lower = min_fit))

@@ -124,6 +124,7 @@ Gather
 # why they dont have AIC and why their BICs are substracted by 2007.494???
 with(all_model2_summary,round(cbind(which,rsq,adjr2,cp,bic),3))[,9]
 names(all_model2_summary)
+
 ```
 
 # Alternative approach: 

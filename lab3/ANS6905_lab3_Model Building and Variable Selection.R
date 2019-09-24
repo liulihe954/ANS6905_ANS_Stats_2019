@@ -2,7 +2,8 @@
 ##                            0.Before the War                                   ## 
 ##===============================================================================##
 ### prepare the packages we need.
-library(car);library(MASS);library(leaps);library(tidyverse):library(faraway)
+library(car);library(MASS);library(leaps);library(tidyverse);library(faraway);library(locfit)
+
 ## If you are missing something; uncomment the following line and fill in the pck name
 # install.packages()
 ## Remember to set working directory
@@ -36,92 +37,90 @@ round(vif(lmod_full)[1],3) == round(Vif_AgeD,3) # same value
 # 2. advanced methods: ridge regression or principle-component regression
 # 3. **model respecification**: redefine or eliminate some explanatory variables
 
-##===============================================================================##
-##                    2.Select the "best" subset of predictors                   ## 
-##===============================================================================##
+# check the model and the veriables
+summary(lmod_full)
+Anova(lmod_full,type = 3)
+round(cor(Heifer_data[,-5]),2) 
+# check cor coef, so high...Additional predictors offer no mre explanatory effect when some are already included
+
+
 # Besides that...
 # Unnecessary predictors bring about noise to estimations, degree of fredom will be wasted.
 # Collecting more data my cost time/money.
 
+##===============================================================================##
+##                    2.Select the "best" subset of predictors                   ## 
+##===============================================================================##
 # Criteria
 # 1. Maximum adjusted R sequare and minimum MSE (equivalent)
 # 2. Mallows's Cp (Cp = p)
 # 3. Lowest:  AIC (Akaike's information criterion) 
 #            /BIC (Bayesian information criterion)
-(lmod_full)
+
 
 # One approach: given a criterion, fit all possible models, and then identify the best one
 # k possible explanatory variables -> 2^k possible models
 # 
+#### calculate everything by hand and gather information succinctly
+# calculation pre: just formating
+all_combo <- expand.grid(c("AgeD","0"),c("WitHt","0"),c("HipHt","0"),c("Girth","0"))
+all_combo = cbind(a = "BW~~", all_combo)
+all_combo[all_combo=="0"] <- NA
+all_model = apply(all_combo, 1, paste, collapse="+")
+for (i in seq_along(all_model)){
+  all_model[i] = gsub("NA\\+", "", all_model[i])
+  all_model[i] = gsub("\\+NA", "", all_model[i])
+  all_model[i] = gsub("~\\+", "", all_model[i])
+}
+all_model = all_model[-length(all_model)]
+all_model # now we exhust all combinations and have all possible models
+# calculation using loop, go through every single model
+R_adj <- numeric();AIC <- numeric();BIC <- numeric();Cp <- numeric()
+for (i in seq_along(all_model)){
+  lmod = do.call(lm,list(formula=all_model[i],data = Heifer_data))
+  R_adj[i] <- summary(lmod)$adj.r.squared
+  AIC[i] <- nrow(Heifer_data)*log((anova(lmod)$'Sum Sq'[length(anova(lmod)$'Sum Sq')])/nrow(Heifer_data))+(2*length(lmod$coefficients))
+  BIC[i] <- nrow(Heifer_data)*log((anova(lmod)$'Sum Sq'[length(anova(lmod)$'Sum Sq')])/nrow(Heifer_data))+ length(lmod$coefficients)* log(nrow(Heifer_data))
+  Cp[i] <- (anova(lmod)$'Sum Sq'[length(anova(lmod)$'Sum Sq')])/summary(lmod_full)$sigma^2-(nrow(Heifer_data)-2*length(lmod$coefficients))
+}
+# gather info
+Gather = cbind(All_Model = all_model,
+               R_adj= round(R_adj,4),
+               AIC = round(AIC,4),
+               BIC = round(BIC,4),
+               Mallows = round(Cp,4))
+Gather = data.frame(Gather)
+
+#### using functions
+library(leaps)
+all_model2 <- regsubsets(BW ~ .,nbest = 6,data = Heifer_data) # exhaustively
+all_model2_summary <- summary(all_model2)
+all_model2_summary$which # all combinations
+Gather2 = with(all_model2_summary,round(cbind(which,rsq,adjr2,cp,bic),3)) ;Gather2[,9] = Gather2[,9] + 2007.494
+Gather2
+Gather
+
+# why they dont have AIC and why their BICs are substracted by 2007.494???
+with(all_model2_summary,round(cbind(which,rsq,adjr2,cp,bic),3))[,9]
+names(all_model2_summary)
+
 # Alternative approach: 
-#          sequential model selection (k(k+1)/2 out of 2^k models will be considered)
+# sequential model selection (k(k+1)/2 out of 2^k models will be considered)
 # Forward Selection // Backward Elimination // Stepwise Regression
-# 
 
-
-
-
-
-
-
-
-
-####### Testing based procedure
-lmod <- lm(BW ~ AgeD + WitHt + HipHt + Girth, data = heifer_data)
-anova(lmod)
-summary(lmod)
-
-lmod <- update(lmod, .~. - WitHt )
-summary(lmod)
-
-lmod <- update(lmod, .~. -HipHt)
-summary(lmod)
-
-# Removal of two predictors do not cause reduction in fit
-lmod <- update (lmod, .~. -AgeD)
-summary(lmod)
-
-
-######### Perform Backward Elimination, Forward Selection, and Stepwise Regression
-######### Testing based procedure
-######### fit1 and fit2 represent "extreme" models
+### Demo
 library(MASS)
-fit1 <- lm(BW ~ AgeD + WitHt + HipHt + Girth, data = heifer_data)
-fit2 <- lm(BW ~ 1,data = heifer_data )
+full_fit <- lm(BW ~ AgeD + WitHt + HipHt + Girth, data = heifer_data)
+min_fit <-  lm(BW ~ 1, data = Heifer_data)
 
 # Backward selection 
-stepAIC(fit1,direction = "backward")
-
+stepAIC(full_fit,direction = "backward",scope = list(upper = full_fit,lower = min_fit))
 # Forward selection 
-stepAIC(fit2,direction = "forward",scope = list(upper = fit1,lower = fit2))
-
+stepAIC(min_fit, direction = "forward",scope = list(upper = full_fit,lower = min_fit))
 # stepwise regression
-stepAIC(fit2,direction = "both", scope = list(upper = fit1,lower = fit2))
+stepAIC(min_fit , direction = "both", scope = list(upper = full_fit,lower = min_fit))
 
-
-########## Perform all possible regressions (aka all subset regressions)
-########## Prints out best 6 models of each # of predictors
-
-install.packages("leaps")
-library(leaps)
-allbw <- regsubsets(BW ~ AgeD + WitHt + HipHt + Girth, nbest = 6, data = heifer_data)
-aprout <- summary(allbw)
-with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3)) 
-
-plot(allbw)
-
-# To get Mallow's Cp:
-install.packages("locfit")
-library(locfit)
-aprout$cp
-
-# To get Residual SE
-aov(lmod)
-
-# Evaluate Multi-Collinearity
-vif(fit1) # variance inflation factors for each of the regressor
-
-
+# Note: variable selection is sensitive to outliers and influential points.
 
 
 

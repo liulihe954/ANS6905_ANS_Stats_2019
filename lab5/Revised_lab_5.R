@@ -1,12 +1,12 @@
 rm(list = ls()) 
 library(car)
-install.packages(pkgs='constrast')
+install.packages('constrast')
 library(contrast)
 
 # set working directory
 #setwd("D:/AppliedstatisticsforAnimalSciences_Fall2017/lab5_Onewayanova/")
 #setwd("C:/Users/liulihe/Desktop/applied_statitics_in_ANS/lab/lab5)
-setwd("C:/Users/liuli/Desktop/applied_statitics_in_ANS/lab/lab5")
+#setwd("C:/Users/liuli/Desktop/applied_statitics_in_ANS/lab/lab5")
 
 # read the data from a file
 lab5.data <- read.csv("Lab5_Canola_trial_CRD.csv",header = T,as.is = T)

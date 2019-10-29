@@ -3,7 +3,7 @@ title: "ANS6905_lab5_Treatment_Means_Sample_Size_Test"
 output: html_document
 ---
 
-```{r setup, echo=FALSE}
+```{r setup, echo=FALSE, include=F}
 #install.packages('constrast')
 library(car)
 library(contrast)
@@ -99,7 +99,7 @@ power.anova.test(groups=3,
 ```
 
 
-# Make 
+# Make comparisons  
 ```{r}
 # levels of the factor
 levels(lab5.data$Trt)
@@ -116,11 +116,10 @@ contrasts(lab5.data$Trt) <- mat
 
 # these lines give you your results
 DMI.mod3 <- aov(ADG~Trt, data = lab5.data)
-summary(DMI.mod3)
+#summary(DMI.mod3)
 
 # Make sure to use summary.aov here or 'split' might not work
-summary.aov(DMI.mod3, split=list(Trt=list("Control v.s. Ave_treatment" =1,
-                                          "Canola v.s. Carinata" = 2))) 
+summary.aov(DMI.mod3, split = list(Trt = list("Control v.s. Ave_treatment" =1,"Canola v.s. Carinata" = 2))) 
 
 ```
 

@@ -1,10 +1,17 @@
-install.packages("asbio")
+---
+title: "ANS6905_Lab7_RCBD"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
 library(asbio)
 library(ggplot2)
 library(tidyverse)
 ## Randomized Complete Block Design #################
 #####################################################
-setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab7/")
+#setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab7/")
 # read the data from a file
 data.block.design <- read.csv("Lab7_CRBD_feedlot_data.csv",header = T)
 str(data.block.design)
@@ -14,15 +21,12 @@ with(data.block.design,tapply(Cumm_DMI,Diet,mean))
 # Mean of each block
 with(data.block.design,tapply(Cumm_DMI,Blk,mean))
 # show data
-xtabs(Cumm_DMI ~ Diet + Blk,
+xtabs(Cumm_DMI ~ Diet+Blk,
        data = data.block.design) # R.C.B.D
-
-# play
-data.block.design.test = data.block.design[-c(3,12,17,20),]
-xtabs(Cumm_DMI ~ Diet + Blk,
-      data = data.block.design.test) # R.C.B.D
+```
 
 
+```{r}
 # Degree of freedom
 df_blk = 5 - 1
 df_diet = 5 - 1
@@ -48,8 +52,11 @@ data.block.design %>%
   geom_line(aes(group = Blk)) +
   geom_point() -> interaction.plot
 interaction.plot
-dev.off()
 
+```
+
+
+```{r}
 # Key assumption: No interaction between block and treatment
 #We are testing the null hypothesis that there is no treatment effect in any block. 
 #H0: Main effects and blocks are additive 
@@ -69,13 +76,8 @@ moddel.contrast <- aov(Cumm_DMI~.,data.block.design)
 summary.aov(moddel.contrast, 
             split=list(Diet=list("1 VS 3" =1,"2 VS 3" = 2))) 
 
+
 # se compare: with and without blk
-
-data.block.design <- read.csv("Lab7_CRBD_feedlot_data.csv",header = T)
-str(data.block.design)
-data.block.design <- dplyr::select(data.block.design,-pen)
-
 summary(lm(Cumm_DMI ~., data = data.block.design))$coefficient[1:5,]
 summary(lm(Cumm_DMI ~.-Blk, data = data.block.design))$coefficient
-
-
+```

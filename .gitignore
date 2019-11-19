@@ -13,7 +13,7 @@
 !*.docx
 !*.txt
 !*/
-
+!Course_Syllabus_ANS_stats.pdf
 #.DS_Store
 #/**/*.pdf
 #/**/*.png

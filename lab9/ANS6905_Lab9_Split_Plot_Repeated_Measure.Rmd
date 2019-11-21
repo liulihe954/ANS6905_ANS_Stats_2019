@@ -1,0 +1,36 @@
+---
+title: "ANS6905_Lab9_Split_Plot_Repeated_Mesure"
+author: "Lihe Liu"
+date: "11/21/2019"
+output: html_document
+---
+
+#library(lattice)
+#library(agricolae)
+
+A fixed effect is an unknown constant that we try to estimate from the data. In contrast, a random effect is a random variable. It does not make sense to estimate a random effect; instead, we try to estimate the parameters that describe the distribution of this random effect.
+
+Consider an experiment to investigate the effect of diet on a sample of farms (could have many farms). Typically, we are interested in specific diet treatments and so we would treat the drug effects as fixed. However, it makes most sense to treat the farms effects as random, where we treat the farms as being randomly selected from a larger collection of farms whose characteristics we would like to estimate. 
+
+Furthermore, we are not particularly interested in these specific farms, but in the whole population of farms. A random effects approach to modeling effects is more ambitious in the sense that it attempts to say something about the wider population beyond the particular sample.
+
+
+The main plot is treated with a level of one factor while the levels of some other factor are allowed to vary 216 RANDOM EFFECTS with the subplots.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

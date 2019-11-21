@@ -3,14 +3,16 @@
 # install.packages("lme4")
 # install.packages("nlme")
 # install.packages('lmerTest')
+# install.packages('glmmTMB')
 library(tidyverse)
 library(lme4)
 library(lmerTest)
+library(nlme)
 library(gridExtra)
 library(faraway)
 library(pbkrtest)
 library(car)
-library(nlme)
+library(glmmTMB)
 
 ##==============================###
 #=== Split-plot Design in R    ===#
@@ -24,13 +26,14 @@ str(split.plot.data.raw)
 split.plot.data = split.plot.data.raw %>% 
   dplyr::select(-Animal) %>% 
   dplyr::mutate_at(c("Parity","MP","Postnatal"),factor) %>% 
-  dplyr::mutate_at(c("MP"), funs(dplyr::recode(.,`5`= "A", `10`= "B",`15`= "C")))
+  dplyr::mutate_at(c("MP"), funs(dplyr::recode(.,`5`= "a", `10`= "b",`15`= "c"))) %>% 
+  rename(TrtA = MP,TrtB = Postnatal)
 str(split.plot.data)
 summary(split.plot.data)
 
 ### Let's go graphical
 split.plot.data %>%
-  ggplot(aes(y=AVG_gr,x=Postnatal,color=MP))+
+  ggplot(aes(y=AVG_gr,x=TrtA,color=TrtB))+
   geom_point()+
   facet_wrap(~Parity)
 
@@ -46,24 +49,24 @@ colors = gg_color_hue(3)
 p1 = 
   split.plot.data %>% # parity 1
   dplyr::filter(Parity == "1") %>% 
-  ggplot(aes(y=AVG_gr,x=Postnatal))+
+  ggplot(aes(y=AVG_gr,x=TrtB))+
   geom_point(color = colors[1])+
-  facet_wrap(~MP)
+  facet_wrap(~TrtA)
 p2 = 
   split.plot.data %>% # parity 2
   dplyr::filter(Parity == "2") %>% 
-  ggplot(aes(y=AVG_gr,x=Postnatal))+
+  ggplot(aes(y=AVG_gr,x=TrtB))+
   geom_point(color = colors[2])+
-  facet_wrap(~MP)
+  facet_wrap(~TrtA)
 p3 = 
   split.plot.data %>% # parity 3
   dplyr::filter(Parity == "3") %>% 
-  ggplot(aes(y=AVG_gr,x=Postnatal))+
+  ggplot(aes(y=AVG_gr,x=TrtB))+
   geom_point(color = colors[3])+
-  facet_wrap(~MP)
+  facet_wrap(~TrtA)
 grid.arrange(p1, p2,p3, nrow = 3)
 dev.off()
-# The parity and postnatal are fixed effects, but the Parity is clearly a random effect.
+# The MP and postnatal are fixed effects, but the Parity is clearly a random effect.
 # We must also consider the interaction between Postnatal and MP
 
 # calculate degree of freedom
@@ -74,32 +77,45 @@ trt.Psnt.df = 4 - 1
 Inact.MP.Psnt.df = trt.MP.df * trt.Psnt.df
 res.df = (4*3 - 1) * (3-1)
 
+
 # Think what to include in the model
 # lmer - Liner;Mixed:Effect model
-mod.mix = lmer(AVG_gr ~ Postnatal * MP + (1|Parity), split.plot.data)
+library(lme4)
+mod.mix0 = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity) + (1|Parity:TrtA),split.plot.data)
+mod.mix = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity),split.plot.data)
+mod.mix2 = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity:TrtA),split.plot.data)
 # The 1 indicates that the random effect is constant within each group.
+
+# check anova
+anova(mod.mix0, 
+      type = c("3"), 
+      ddf = "Kenward-Roger")
+#lmerTest::anova.lmerModLmerTest(mod.mix,ddf = "lme4")
 anova(mod.mix)
+
+sumary(mod.mix0)
 sumary(mod.mix)
+sumary(mod.mix3)
+
 # largest variance component is that due to the error = 23.07; 
 #while parity effect =6.12 
 
 # test interaction term
-mod.mix.small <- lmer(AVG_gr ~ Postnatal + MP + (1|Parity), split.plot.data)
+mod.mix.small <- lmer(AVG_gr ~ TrtA + TrtB  + (1|Parity), split.plot.data)
 KRmodcomp(mod.mix,mod.mix.small) # An approximate F-test based on the Kenward-Roger approach.
 # no significant interaction
 anova(mod.mix.small)
 
 # Partial-F-like(?) test for lmer
-mod.mixi <- lmer(AVG_gr ~ Postnatal+ (1|Parity), split.plot.data)
+mod.mixi <- lmer(AVG_gr ~ TrtB+ (1|Parity), split.plot.data)
 KRmodcomp(mod.mix, mod.mixi)
-mod.mixv <- lmer(AVG_gr ~ MP + (1|Parity), split.plot.data)
+mod.mixv <- lmer(AVG_gr ~ TrtA + (1|Parity), split.plot.data)
 KRmodcomp(mod.mix,mod.mixv)
 # same conclusion
 
 # dignostic
 plot(fitted(mod.mix),residuals(mod.mix),xlab="Fitted",ylab="Residuals")
 qqPlot(split.plot.data$AVG_gr)
-
 
 ##======================###
 ##   Repeated Measures  ##
@@ -172,23 +188,17 @@ anova(fit.cs)
 AIC(fit.cs)
 getVarCov(fit.cs, individual="1",type="conditional")
 ######## Auto Regressive ###############
-fit.ar <- lme(BW ~ TRT*Day,  # fixed effect
+fit.ar <- lme(BW ~ TRT * Day,  # fixed effect
               random = ~ 1|ID, # random effect
               data = rep.data,  # data
               correlation = corAR1(form = ~ 1|ID))
-
 anova(fit.ar)
 AIC(fit.ar)
 getVarCov(fit.ar, individual="1",type ="conditional")
-########     VCOV: Toeplitz ##################
-fit.T <- lme(BW ~ TRT * Day,  # fixed effect
-              random = ~ 1|ID, # random effect
-              data = rep.data,  # data
-              correlation = corARMA(value = c(0,-.3),form = ~ 1 | ID, p = 2, q = 0), # grouping factor is ID
-              weights = varIdent(form = ~ 1|ID))
-anova(fit.T)
-AIC(fit.T)
-getVarCov(fit.T, individual="1",type="conditional")
+#########    VCOV: Toeplitz   ################
+fit.toep <- glmmTMB(BW ~ TRT + Day + TRT:Day + (1|TRT:ID), 
+                    data = rep.data, dispformula=~0)
+VarCorr(fit.toep)
 
 ########    VCOV: spatial power ##################
 fit.sp <- lme(BW ~ TRT*Day,  # fixed effect
@@ -199,7 +209,6 @@ fit.sp <- lme(BW ~ TRT*Day,  # fixed effect
 anova(fit.sp)
 AIC(fit.sp)
 getVarCov(fit.sp, individual="1",type ="conditional")
-
 ###### selection of the model ############################
 anova(fit.cs,fit.us)
 anova(fit.AR,fit.us)

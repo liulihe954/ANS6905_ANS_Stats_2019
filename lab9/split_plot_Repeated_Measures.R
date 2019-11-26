@@ -18,10 +18,8 @@ full.data$MP <- factor(full.data$MP)
 full.data$Postnatal <- factor(full.data$Postnatal)
 str(full.data)
 
-
 # Exploratory data analysis
 with(full.data, xyplot(AVG_gr~ Postnatal | MP))
-
 
 # Ignoring Experimental design and running factorial analysis
 res.bad <- lm(AVG_gr~ MP*Postnatal, data = full.data) # chances of false treatment effect
@@ -42,7 +40,6 @@ plot(res2.good, 5)
 # Differences in sub-plot factor
 diff_subf <- with(full.data, HSD.test(AVG_gr, Postnatal, DFerror = 18, MSerror = 260))
 diff_subf
-
 
 ################## Repeated Measures ######################################
 install.packages("lme4")
@@ -67,12 +64,10 @@ str(rep.data)
 rep.mod1 <- aov(BW ~ TRT*Day + Error(TRT:ID), data = rep.data)
 summary(rep.mod1)
 
-
 # anova from lme4 package in R
 rep.mod3 <- lmer(BW ~ TRT + Day + TRT:Day + (1|TRT:ID), data = rep.data)
 summary(rep.mod3)
 anova(rep.mod3)
-
 
 ######## Unstructured Symmetry ############################################
 fit.us <- lme(BW ~ TRT*Day,  # fixed effect
@@ -83,7 +78,6 @@ fit.us <- lme(BW ~ TRT*Day,  # fixed effect
 anova(fit.us)
 AIC(fit.us)
 getVarCov(fit.us, individual="1",type="conditional")
-
 
 
 ######## Auto Regressive1 ############################################

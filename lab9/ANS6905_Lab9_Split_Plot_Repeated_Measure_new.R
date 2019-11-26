@@ -13,27 +13,29 @@ library(faraway)
 library(pbkrtest)
 library(car)
 library(glmmTMB)
+library(gdata)
+library(openxlsx)
 
-##==============================###
+
+##============================###
 #=== Split-plot Design in R    ===#
 ##==============================###
 # setwd AND read
-setwd("/Users/liulihe95/Desktop/ANS6905_ANS_Stats_2019/lab9")
-split.plot.data.raw <- read.csv("LAB8_Split_Plot.csv",header =T)
+split.plot.data.raw <- read.xlsx("ANS6905_Lab09_new_sp.xlsx")
+#split.plot.data.raw <-read.csv("ANS6905_Lab09_new_sp.csv",sep = ",")
 names(split.plot.data.raw)
 str(split.plot.data.raw)
 # massage
 split.plot.data = split.plot.data.raw %>% 
-  dplyr::select(-Animal) %>% 
-  dplyr::mutate_at(c("Parity","MP","Postnatal"),factor) %>% 
-  dplyr::mutate_at(c("MP"), funs(dplyr::recode(.,`5`= "a", `10`= "b",`15`= "c"))) %>% 
-  rename(TrtA = MP,TrtB = Postnatal)
+  dplyr::select(-Sow,-Pen) %>% 
+  dplyr::mutate_at(c("Parity","TrtA","TrtB"),factor) %>% 
+  dplyr::mutate_at(c("TrtA"), funs(dplyr::recode(.,`5`= "a", `10`= "b",`15`= "c")))
 str(split.plot.data)
 summary(split.plot.data)
 
 ### Let's go graphical
 split.plot.data %>%
-  ggplot(aes(y=AVG_gr,x=TrtA,color=TrtB))+
+  ggplot(aes(y=ADGgd,x=TrtA,color=TrtB))+
   geom_point()+
   facet_wrap(~Parity)
 
@@ -49,19 +51,19 @@ colors = gg_color_hue(3)
 p1 = 
   split.plot.data %>% # parity 1
   dplyr::filter(Parity == "1") %>% 
-  ggplot(aes(y=AVG_gr,x=TrtB))+
+  ggplot(aes(y=ADGgd,x=TrtB))+
   geom_point(color = colors[1])+
   facet_wrap(~TrtA)
 p2 = 
   split.plot.data %>% # parity 2
   dplyr::filter(Parity == "2") %>% 
-  ggplot(aes(y=AVG_gr,x=TrtB))+
+  ggplot(aes(y=ADGgd,x=TrtB))+
   geom_point(color = colors[2])+
   facet_wrap(~TrtA)
 p3 = 
   split.plot.data %>% # parity 3
   dplyr::filter(Parity == "3") %>% 
-  ggplot(aes(y=AVG_gr,x=TrtB))+
+  ggplot(aes(y=ADGgd,x=TrtB))+
   geom_point(color = colors[3])+
   facet_wrap(~TrtA)
 grid.arrange(p1, p2,p3, nrow = 3)
@@ -82,24 +84,25 @@ res.df = (4*3 - 1) * (3-1)
 # lmer - Liner;Mixed:Effect model
 library(lme4)
 #
-mod.mix0 = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity) + (1|Parity:TrtA),split.plot.data)
+mod.mix0 = lmer(ADGgd ~  TrtA * TrtB + 
+                  (1|Parity) + (1|Parity:TrtA),split.plot.data)
 # The 1 indicates that the random effect is constant within each group.
 
 # check anova
-anova(mod.mix0, 
+anova(mod.mix0,
       type = c("3"), 
       ddf = "Kenward-Roger")
 sumary(mod.mix0)
 
 # only interaction term
-mod.mix1 = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity:TrtA),split.plot.data)
+mod.mix1 = lmer(ADGgd ~  TrtA * TrtB + (1|Parity:TrtA),split.plot.data)
 anova(mod.mix1, 
       type = c("3"), 
       ddf = "Kenward-Roger")
 sumary(mod.mix1)
 
 # only parity
-mod.mix2 = lmer(AVG_gr ~  TrtA * TrtB + (1|Parity),split.plot.data)
+mod.mix2 = lmer(ADGgd ~  TrtA * TrtB + (1|Parity),split.plot.data)
 anova(mod.mix2, 
       type = c("3"), 
       ddf = "Kenward-Roger")
@@ -109,21 +112,21 @@ sumary(mod.mix2)
 # while parity effect =6.12 
 
 # test interaction term
-mod.mix.small <- lmer(AVG_gr ~ TrtA + TrtB  + (1|Parity:TrtA), split.plot.data)
+mod.mix.small <- lmer(ADGgd ~ TrtA + TrtB  + (1|Parity:TrtA), split.plot.data)
 KRmodcomp(mod.mix1,mod.mix.small) # An approximate F-test based on the Kenward-Roger approach.
 # no significant interaction
 anova(mod.mix.small)
 
 # Partial-F-like(?) test for lmer
-mod.mixi <- lmer(AVG_gr ~ TrtB+ (1|Parity:TrtA), split.plot.data)
+mod.mixi <- lmer(ADGgd ~ TrtB+ (1|Parity:TrtA), split.plot.data)
 KRmodcomp(mod.mix1, mod.mixi)
-mod.mixv <- lmer(AVG_gr ~ TrtA + (1|Parity:TrtA), split.plot.data)
+mod.mixv <- lmer(ADGgd ~ TrtA + (1|Parity:TrtA), split.plot.data)
 KRmodcomp(mod.mix1,mod.mixv)
 # same conclusion
 
 # dignostic
 plot(fitted(mod.mix1),residuals(mod.mix1),xlab="Fitted",ylab="Residuals")
-qqPlot(split.plot.data$AVG_gr)
+qqPlot(split.plot.data$ADGgd)
 
 
 ##======================###
@@ -136,30 +139,33 @@ qqPlot(split.plot.data$AVG_gr)
 # a fixed effect, which is a function of the treatment;
 # a random effect, which expresses the variation between individuals; 
 # an error, which is due to measurement or unrecorded variables
-
-
-rep.data.raw <- read.csv("LAB8_Repeated_Measure.csv",header=T)
+rep.data.raw <- read.xls("ANS6905_Lab09_new_rm.xlsx",header=T)
 names(rep.data.raw)
 str(rep.data.raw)
 # massage
 rep.data = rep.data.raw %>%
   #dplyr::mutate(ID = as.character(ID)) %>% 
-  dplyr::mutate_at(c("TRT","Day","ID"),factor) %>%
-  dplyr::mutate_at(c("TRT"),funs(dplyr::recode(.,`0`= "A", `2`= "B",`4`= "C")))
+  dplyr::mutate_at(c("TRT","Day","ID","Litter"),factor) %>%
+  dplyr::mutate_at(c("TRT"),funs(dplyr::recode(.,`0`= "A", `2`= "B",`4`= "C"))) %>% 
+  dplyr::mutate_at(c("Litter"),funs(dplyr::recode(.,`1`= "L1", `2`= "L2",`3`= "L3",`4`= "L4",`5`= "L5"))) %>% 
+  dplyr::select(-X,-BWCov)
 str(rep.data)
 summary(rep.data)
-rep.data$ID = factor(rep.data$ID,levels(rep.data$ID)[c(4,5,1:3)])
+
+#rep.data$ID = factor(rep.data$ID,levels(rep.data$ID)[c(4,5,1:3)])
 ### Let's go graphical
 rep.data %>%
-  ggplot(aes(y=BW,x=Day,color=Day))+
+  ggplot(aes(y=BW,x=Day,color=Litter))+
   geom_point()+
   facet_wrap(~TRT,ncol = 1)
+dev.off()
 
 # subject is the experimental unit; not a measure
 # 3 reatments with 5 subjects per treatment
 # each subject measured 4 times in 4 time points (periods)
 # yijk = mu + trt * time + subject(trt) + error
 # what is a random term here?
+
 # covariance between measurements on the same subject:
 # it is assumed that the covariances between measurements on different subjects are zero
 
@@ -172,52 +178,49 @@ rep.data %>%
 
 #equal variance across measurements and equal covariance between measurements
 
-
 # ====================================== #
-##=  variance - covariance structure   =##
-# ====================================== #
-
-
+#=   variance - covariance structure    =#
+# ======================================#
+?corClasses()
 ######## Unstructured Symmetry #######
-fit.us <- lme(BW ~ TRT * Day,  # fixed effect
-              random = ~ 1|ID, # random effect
-              data = rep.data,  # data
-              correlation = corSymm(form = ~ 1|ID), # grouping factor is ID
-              weights = varIdent(form = ~ 1|Day))   # Different variances for each measurements
+fit.us = lme(BW ~ TRT * Day, data = rep.data,
+             random = ~1|Litter/TRT,
+             correlation = corSymm(form= ~1|Litter/TRT),
+             weight=varIdent(form=~1|Day))
 anova(fit.us)
 AIC(fit.us)
-getVarCov(fit.us, individual="1",type="conditional")
+summary(fit.us)
 ######## Compound Symmetry ############
-fit.cs <- lme(BW ~ TRT*Day,# fixed effect
-              random = ~1|ID,# random effect
-              data = rep.data,# data
-              correlation = corCompSymm(form = ~ 1|ID))# within group correlation structure
+fit.cs <- lme(BW ~ TRT * Day, data = rep.data,
+              random = ~1|Litter/TRT,
+              correlation = corCompSymm(form= ~1|Litter/TRT),
+              weights = varIdent(form = ~ 1|Day))
 
 anova(fit.cs)
 AIC(fit.cs)
-getVarCov(fit.cs, individual="1",type="conditional")
+summary(fit.cs)
 ######## Auto Regressive ###############
-fit.ar <- lme(BW ~ TRT * Day,  # fixed effect
-              random = ~ 1|ID, # random effect
-              data = rep.data,  # data
-              correlation = corAR1(form = ~ 1|ID))
+fit.ar <- lme(BW ~ TRT * Day, data = rep.data,
+              random = ~1|Litter/TRT,
+              correlation = corAR1(form= ~1|Litter/TRT),
+              weights = varIdent(form = ~ 1|Day))
 anova(fit.ar)
 AIC(fit.ar)
-getVarCov(fit.ar, individual="1",type ="conditional")
+summary(fit.ar)
 #########    VCOV: Toeplitz   ################
-fit.toep <- glmmTMB(BW ~ TRT + Day + TRT:Day + (1|TRT:ID), 
+fit.toep <- glmmTMB(BW ~ TRT + Day + TRT:Day + (1|Litter/TRT), 
                     data = rep.data, dispformula=~0)
+summary(fit.toep)
 VarCorr(fit.toep)
-
 ########    VCOV: spatial power ##################
-fit.sp <- lme(BW ~ TRT*Day,  # fixed effect
-              random = ~ 1|ID, # random effect
-              data = rep.data,  # data
-              correlation = corExp(form = ~ 1|ID))
-
+fit.sp <- lme(BW ~ TRT * Day, data = rep.data,
+              random = ~1|Litter/TRT,
+              correlation = corExp(form= ~1|Litter/TRT),
+              weights = varIdent(form = ~ 1|Day))
 anova(fit.sp)
 AIC(fit.sp)
-getVarCov(fit.sp, individual="1",type ="conditional")
+summary(fit.sp)
 ###### selection of the model ############################
-anova(fit.cs,fit.us)
-anova(fit.AR,fit.us)
+anova(fit.cs,fit.us,fit.ar,fit.sp)
+
+

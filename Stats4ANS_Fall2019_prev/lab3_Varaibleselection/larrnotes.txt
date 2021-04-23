@@ -1,0 +1,40 @@
+mtgyld <- read.fwf("http://www.stat.ufl.edu/~winner/data/myield.dat",
+     header=F, width=c(21,5,10,9,10,8,8,6), col.names=c("smsa","myld",
+      "loan_mrtg","distbos","sav_unit","sav_pc","popinc50","interreg"))
+attach(mtgyld)
+
+plot(mtgyld[,2:8])
+
+myld.mod1 <- lm(myld ~ loan_mrtg + distbos + sav_unit + sav_pc + popinc50 +
+                        interreg)
+summary(myld.mod1)
+anova(myld.mod1)
+drop1(myld.mod1, test="F")
+
+myld.mod2 <- lm(myld ~ loan_mrtg + sav_unit + sav_pc)
+summary(myld.mod2)
+anova(myld.mod2)
+drop1(myld.mod2, test="F")
+
+anova(myld.mod2, myld.mod1)
+
+#### Backward, Forward, Stepwise
+library(MASS)
+fit1 <- lm(myld ~ loan_mrtg + distbos + sav_unit + sav_pc + popinc50 +
+                        interreg)
+fit2 <- lm(myld ~ 1)
+stepAIC(fit1,direction="backward")
+stepAIC(fit2,direction="forward",scope=list(upper=fit1,lower=fit2))
+stepAIC(fit2,direction="both",scope=list(upper=fit1,lower=fit2))
+
+########### All Possible Regressions
+install.packages("leaps")
+library(leaps)
+
+allmyld <- regsubsets(myld ~ loan_mrtg + distbos + sav_unit + sav_pc + popinc50 +
+                        interreg, nbest=4,data=mtgyld)
+aprout <- summary(allmyld)
+n <- length(mtgyld$myld)
+p <- apply(aprout$which, 1, sum)
+aprout$aic <- aprout$bic - log(n) * p + 2 * p
+with(aprout,round(cbind(which,rsq,adjr2,cp,bic,aic),3))     ## Prints "readable" results

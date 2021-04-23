@@ -1,0 +1,63 @@
+cats.uni <- read.fwf("http://www.stat.ufl.edu/~winner/data/zylkene_uni_cat.dat",
+   width=c(rep(8,7)),col.names=c("id","weight","age","gender","trt","timepnt","y"))
+
+attach(cats.uni)
+
+id <- factor(id) 
+trt <- factor(trt)
+timepnt <- factor(timepnt,ordered=T)
+
+cat.mod1 <- aov(y ~ trt + trt/id + timepnt + trt:timepnt)
+summary(cat.mod1)
+
+
+cat.mod2 <- aov(y ~ trt*timepnt + Error(id))
+
+summary(cat.mod2)
+
+summary(cat.mod2,split=list(timepnt=list(linear=1, quadratic=2,
+cubic=3, quartic=4)))
+
+library(lmerTest)
+
+cat.mod3 <- lmer(y ~ trt*timepnt + (1|trt:id))
+summary(cat.mod3)
+anova(cat.mod3)
+
+library(nlme)
+
+
+fit.ar1 <- lme(y ~ trt*timepnt, 
+random= ~1 | id,
+corr = corAR1(, form= ~ 1 | id))
+summary(fit.ar1)
+anova(fit.ar1)
+AIC(fit.ar1)
+getVarCov(fit.ar1, individual="1",type="conditional")
+
+
+
+detach(cats.uni)
+
+#############################################################
+cats.multi <- read.fwf("http://www.stat.ufl.edu/~winner/data/cats_anxiety1.dat",
+   width=c(rep(8,13)), col.names=c("id","weight","age","gender",
+    "enviro", "origin","trt_cat","result","es1","es2","es3","es4","es5"))
+
+attach(cats.multi)
+
+trt_cat <- factor(trt_cat)
+id <- factor(id)
+
+
+##### Model with Greenhouse-Geisser and Huynh-Feldt df adjustments
+
+dayLevels <- c(1,2,3,4,5)
+dayFactor <- as.factor(dayLevels)
+dayFrame <- data.frame(dayFactor)
+dayBind <- cbind(es1,es2,es3,es4,es5)
+dayModel <- lm(dayBind ~ trt_cat)
+
+library(car)
+cat.mod5 <- Anova(dayModel, idata=dayFrame, idesign = ~dayFactor)
+summary(cat.mod5)

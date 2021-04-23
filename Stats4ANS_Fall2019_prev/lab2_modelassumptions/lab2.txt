@@ -1,0 +1,44 @@
+car package will help you run the diagnostics.
+MASS is used for stepwise regression, as well as a range of other linear regression tasks.
+
+# changing the reference level in the group
+dataset.gobble1$PolID2 = relevel(dataset.gobble1$PolID, ref="Republicans")
+contrasts(dataset.gobble1$PolID2)
+
+# Regression assumptions
+Linear model does a bad job modeling the relationship 
+
+# Why do we need normally distributed errors
+The assumption of normality in regression manifests in three ways: 1. For confidence intervals around a parameter to be accurate, the paramater must come from a normal distribution. 
+2. For significance tests of models to be accurate, the sampling distribution of the thing you’re testing must be normal. 
+3. To get the best estimates of parameters (i.e., betas in a regression equation), the residuals in the population must be normally distributed.
+
+This assumption is most important when you have a small sample size (because central limit theorem isn’t working in your favor), 
+and when you’re interested in constructing confidence intervals/doing significance testing.
+
+# Homoscedasticity
+Homoscedasticity/homogeneity of variance Homogeneity of variance occurs when the spread of scores for your criterion is the same at each level of the predictor. 
+When this assumption is satisfied, your parameter estimates will be optimal. 
+When there are unequal variances of the criterion at different levels of the predictor (i.e., when this assumption is violated),
+ you’ll have inconsistency in your standard error & parameter estimates in your model. 
+Subsequently, your confidence intervals and significance tests will be biased.
+
+# Independence Last but not least, independence means that the errors in your model are not related to each other. 
+Computation of standard error relies on the assumption of independence, so if you don’t have standard error, 
+say goodbye to confidence intervals and significance tests.
+No influential outliers This isn’t technically an assumption of regression, but it’s best practice to avoid influential outliers. 
+Why is it problematic to have outliers in your data? Outliers can bias parameter estimates (e.g., mean), and they also affect your sums of squares.
+ Sums of squares are used to estimate the standard error, so if your sums of squares are biased, your standard error likely is too. 
+It’s really bad to have a biased standard error because it is used to calculate confidence intervals around our parameter estimate. 
+In other words, outliers could lead to biased confidence intervals. Not good! We need to rid ourselves of those pesky outliers
+
+
+### Data Crafts
+
+1.we review familiar graphical displays ( histograms, boxplots, scatterplots)
+2. To introduce the family of power transformation
+
+
+
+################# We will use McMaster University slides for data analysis
+

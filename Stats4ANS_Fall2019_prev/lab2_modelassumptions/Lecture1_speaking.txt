@@ -1,0 +1,76 @@
+R is an poen source system for statistical computation and graphics.
+Today, we learn how to import and manage datsets, create R objects, istall and load R packages , conudtc basic statistical 
+analysis and create common graphical displays.
+
+The <- operator takes the output of the function on the right and saves them in the named object on the left. For example, z.out <- zelig(...) stores the output from
+zelig() as the object z.out in your working memory.
+
+Use the names() command to see the contents of R objects, and the $ operator to
+extract elements from R objects.
+
+remove(list = ls()). # Remove all the objects in R
+
+
+# Data structure in R
+
+A data frame is a rectangular matrix with n rows and k columns. Each column
+represents a variable and each row an observation. Each variable may have a different
+class. (See Section 3.3.1 for a list of classes.) You may refer to specific variables from
+a data frame using, for example, data$variable.
+
+Use names() to view the elements
+available within a list, and the $ operator to refer to an element in a list.
+
+If your dataset is in a tab- or space-delimited .txt file, use read.table("mydata.txt")
+If your dataset is a comma separated table, use read.csv("mydata.csv")
+
+If your file uses the first row to identify variable names, you should use the option
+header = TRUE to import those field names. For example,
+
+ read.csv("mydata.csv", header = TRUE)
+
+The R missing value code is NA. If this value is in your data, R will recognize your
+missing values as such. If you have instead used a place-holder value (such as -9) to
+represent missing data, you need to tell R this on loading the data:
+> read.table("mydata.tab", header = TRUE, na.strings = "-9")
+
+
+Verifying You Loaded The Data Correctly
+Whichever method you use, try the names(), dim(), and summary() commands to verify
+that the data was properly loaded. For example,
+
+> data <- read.csv("mydata.csv", header = TRUE) # Read the data.
+> dim(data) # Displays the dimensions of the data frame
+[1] 16000 8 # in rows then columns.
+> data[1:10,] # Display rows 1-10 and all columns.
+> names(data) # Check the variable names.
+[1] "V1" "V2" "V3" # These values indicate that the variables
+# weren't named, and took default values.
+> names(data) <- c("income", "educate", "year") # Assign variable names.
+> summary(data) # Returning a summary for each variable
+
+
+> save(mydata, file = "mydata.RData") # Saves `mydata' to `mydata.RData'
+# in your working directory.
+> save.image() # Saves your entire workspace to
+# the default `.RData' file.
+
+
+Factor variables may contain values consisting of either integers or character strings.
+Use factor() or as.factor() to convert character or integer variables into factor
+variables. Factor variables separate unique values into levels. These levels may either
+be ordered or unordered. In practice, this means that including a factor variable among
+the explanatory variables is equivalent to creating dummy variables for each level. In
+addition, some models (ordinal logit, ordinal prob
+
+
+###############################################################################################################################################
+var1[var2 == var3] <- 1
+matrix(vector, nrow = k, ncol = n)
+A data frame (or data set) is a special type of list in which each variable is constrained
+to have the same number of observations. A data frame may contain variables of different
+types (numeric, integer, logical, character, and factor), so long as each variable has the same
+number of observations.
+Thus, a data frame can use both matrix commands and list commands to manipulate
+variables and observations.
+
